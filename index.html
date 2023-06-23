@@ -1,0 +1,160 @@
+<html>
+<head>
+<style>
+:root
+{ --color1: #82FA37;
+--color2: #B1FB82; }
+.menu{
+display:flex; justify-content:space-around;}
+.msg{color:red; padding-left:25%; font-weight:bold;}
+#nb{width:80px;}
+#selectDiv{ display:flex; }
+table { display:none; overflow: auto; margin:0 50px; }
+th,td
+{ width:100px;
+text-align:center; }
+td, tr, th, thead, tbody, tfoot
+{ border:2px solid; }
+tbody tr:nth-child(2n)
+{ background-color:var(--color1); }
+tbody tr:nth-child(2n+1)
+{ background-color:var(--color2); }
+tfoot td { font-weight:bold; }
+</style>
+</head>
+
+<body>
+<div class="menu">
+<div>
+<button id="write">Remplir la BDD</button>
+<input type="number" id="nb" value="10"/>
+</div>
+<button id="select">Afficher tout le monde</button>
+<button id="groupby">grouper par ville</button>
+<button id="delete">Vider la BDD</button>
+</div>
+<div id="selectDiv">
+<table id="selectTab">
+<thead>
+<tr>
+<th>Nom</th>
+<th>Prénom</th>
+<th>Age</th>
+<th>Ville</th>
+</tr>
+</thead>
+</table>
+
+<table id="groupbyTab">
+<thead>
+<tr>
+<th>Ville</th>
+<th>Somme</th>
+</tr>
+</thead>
+</table>
+
+</div>
+</body>
+<script>
+document.querySelector("#select").addEventListener("click",
+function()
+{ fetch('http://127.0.0.1:8081/select')
+
+.then(response => {
+if(response.ok) return response.json() 
+})
+
+.then(json => {
+let tbody=document.createElement("tbody")
+for (r in json.row)
+{  let tr=document.createElement('tr')
+   for (i in json.row[r])
+   {  let td=document.createElement('td')
+      td.appendChild(document.createTextNode(json.row[r][i]))
+      tr.appendChild(td) 
+   }
+   tbody.appendChild(tr)
+}
+document.querySelector("#selectTab").appendChild(tbody)
+document.querySelector("#selectTab").style.display="block"
+})
+})
+
+
+document.querySelector("#groupby").addEventListener("click",
+function()
+{ fetch('http://127.0.0.1:8081/groupby')
+
+.then(response => {
+if(response.ok) return response.json() 
+})
+
+.then(json => {
+let tbody=document.createElement("tbody")
+let total=0
+for (r in json.result)
+{  let tr=document.createElement('tr')
+   for (i in json.result[r])
+   {  let td=document.createElement('td')
+      td.appendChild(document.createTextNode(json.result[r][i]))
+      tr.appendChild(td) 
+      if(i==json.result[r].length-1) total+=json.result[r][i]
+   }
+   tbody.appendChild(tr)
+}
+console.log(total)
+let tfoot=document.createElement("tfoot")
+let tr=document.createElement('tr')
+let td1=document.createElement('td')
+td1.appendChild(document.createTextNode("Totale"))
+tr.appendChild(td1)
+let td2=document.createElement('td')
+td2.appendChild(document.createTextNode(total))
+tr.appendChild(td2)
+tfoot.appendChild(tr)
+
+
+document.querySelector("#groupbyTab").appendChild(tbody)
+document.querySelector("#groupbyTab").appendChild(tfoot)
+document.querySelector("#groupbyTab").style.display="block"
+})
+})
+
+
+document.querySelector("#delete").addEventListener("click",
+function()
+{ fetch('http://127.0.0.1:8081/delete')
+
+.then(response => {
+if(response.ok) return response.json() 
+})
+
+.then(json => {
+let p=document.createElement("p")
+p.classList.add("msg")
+p.appendChild(document.createTextNode(json.result))
+document.querySelector(".menu").after(p)
+})
+})
+
+
+document.querySelector("#write").addEventListener("click",
+function()
+{
+let nb=document.querySelector("#nb").value 
+fetch('http://127.0.0.1:8081/'+nb)
+
+.then(response => {
+if(response.ok) return response.json() 
+})
+
+.then(json => {
+let p=document.createElement("p")
+p.classList.add("msg")
+p.appendChild(document.createTextNode(json.message))
+document.querySelector(".menu").after(p)
+})
+})
+</script>
+</html>
